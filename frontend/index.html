@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Object Detection App</title>
+
+    
+    <link href="https://fonts.googleapis.com/css?family=K2D:300,400,500,700,800" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.css">
+</head>
+
+<body>
+
+<!--Header Section-->
+<section class="bg-gradient pt-5 pb-6">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 d-flex flex-row align-items-center justify-content-between">
+                <div class="heading-brand">Object Detection App</div>
+                <a href="#" class="btn btn-dark" target="_blank">GitHub</a>
+            </div>
+        </div>
+        <div class="row mt-6">
+            <div class="col-md-8 mx-auto text-center">
+                <h1>How to use it?</h1>
+                <p class="lead mb-5">Some text</p>
+            </div>
+        </div>
+            <div class="card">
+                <div class="col-md-9 d-flex">
+                    <div class="sidebar">
+                        <div class="sidebar-content">
+                            <h3>Image Configuration</h3>
+                            <p>Choose an image...</p>
+                            <div class="upload-instructions">
+                                <p>Drag and drop file here</p>
+                                <p>Limit 200MB per file - JPG, JPEG, PNG, BMP, WEBP</p>
+                            </div>
+                            <button onclick="document.getElementById('file-input').click()" class="btn btn-dark btn-upload">Browse files</button>
+                            <input type="file" id="file-input" hidden>
+                            
+                            <div class="model-confidence-slider">
+                                <label for="model-confidence">Select Model Confidence</label>
+                                <input type="range" id="model-confidence" name="confidence" min="25" max="100" value="50">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="object-detection-area">
+                        <h3>Object Detection using YOLOv8</h3>
+                        <!-- The object detection results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+    
+        
+    </div>
+</section>
+
+
+
+
+<section class="pb-6 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <h2 class="text-center text-md-left">Technologies used in this project</h2>
+                <div class="mt-4 d-flex flex-row justify-content-md-between">
+                    <img src="https://logo.clearbit.com/html.com?size=60" alt="HTML"/>
+                    <img src="https://logo.clearbit.com/JS.com?size=60" alt="CSS"/>
+                    <img src="https://logo.clearbit.com/html.com?size=60" alt="HTML"/>
+                    <img src="https://logo.clearbit.com/stripe.com?size=60" alt="FastAPI"/>
+                    <img src="https://logo.clearbit.com/python.com?size=60" alt="Python"/>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--footer-->
+<footer class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <ul class="list-inline">
+                    <li class="list-inline-item"><a href="https://prismjs.com/test.html">Test Drive</a></li>
+                    <li class="list-inline-item"><a href="https://prismjs.com/extending.html">API Docs</a></li>
+                    <li class="list-inline-item"><a href="https://github.com/LeaVerou/prism/">Fork Prism.js on GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row my-2">
+            <div class="col-md-4 mx-auto text-muted text-center small-xl">
+                &copy; 2019 Prism - All Rights Reserved
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.7.3/feather.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
+<script src="js/scripts.js"></script>
+</body>
+</html>

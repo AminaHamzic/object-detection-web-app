@@ -39,7 +39,7 @@ for index in output_layer_indices:
 
 
 # Load image
-img = cv2.imread("images/FELV-cat.jpg")
+img = cv2.imread("images/slow_streets_on_lake.png")
 height, width, channels = img.shape
 
 
