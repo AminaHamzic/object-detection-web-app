@@ -38,8 +38,10 @@
                                 <p>Drag and drop file here</p>
                                 <p>Limit 200MB per file - JPG, JPEG, PNG</p>
                             </div>
-                            <button onclick="document.getElementById('file-input').click()" class="btn btn-dark btn-upload">Browse files</button>
-                            <input type="file" id="file-input" hidden>
+                            <form method="POST" action="http://127.0.0.1:8000/uploadfile/" enctype="multipart/form-data">
+                                <input type="file" name="file_upload">
+                                <button type="submit">Send Image</button>
+                            </form>
                             
                             <div class="model-confidence-slider">
                                 <label for="model-confidence">Select Model Confidence</label>
@@ -48,7 +50,7 @@
                         </div>
                     </div>
                     <div class="object-detection-area">
-                        <h3>Image displayed here</h3>
+                        <h3>Image here</h3>
                         <!-- The object detection results will be displayed here -->
                     </div>
                 </div>
