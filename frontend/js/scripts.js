@@ -3,40 +3,24 @@ $(function () {
     feather.replace();
 });
 
-document.addEventListener('DOMContentLoaded', (event) => {
-    const fileInput = document.getElementById('file-input');
-    const modelConfidenceInput = document.getElementById('model-confidence');
+document.getElementById('upload_button').addEventListener('click', async () => {
+    let fileInput = document.getElementById('file_upload');
+    let formData = new FormData();
+    formData.append('file_upload', fileInput.files[0]);
 
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        const reader = new FileReader();
+    try {
+        let response = await fetch('http://127.0.0.1:8000/uploadfile/', {
+            method: 'POST',
+            body: formData
+        });
 
-        reader.onload = (e) => {
-            const image = new Image();
-            image.src = e.target.result;
-
-            image.onload = () => {
-                // Display the image
-                const imageContainer = document.getElementById('image-container');
-                imageContainer.innerHTML = '';
-                imageContainer.appendChild(image);
-
-                // Display the image dimensions
-                const imageDimensions = document.getElementById('image-dimensions');
-                imageDimensions.textContent = `Image dimensions: ${image.width} x ${image.height}`;
-
-                // Display the file size
-                const fileSize = document.getElementById('file-size');
-                fileSize.textContent = `File size: ${file.size} bytes`;
-            };
-        };
-
-        reader.readAsDataURL(file);
-    });
-
-    modelConfidenceInput.addEventListener('input', (event) => {
-        // Update the model confidence value, if you need to display it
-        console.log('Model confidence:', event.target.value);
-    });
+        if (response.ok) {
+            let data = await response.json();
+            console.log('Upload successful', data);
+        } else {
+            console.error('Upload failed');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
 });
-

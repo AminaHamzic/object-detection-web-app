@@ -40,11 +40,11 @@
                                 <p>Drag and drop file here</p>
                                 <p>Limit 200MB per file - JPG, JPEG, PNG</p>
                             </div>
-                            <form method="POST" action="http://127.0.0.1:8000/uploadfile/" enctype="multipart/form-data">
-                                <input type="file" name="file_upload">
-                                <button type="submit">Send Image</button>
+                            <form method="POST" enctype="multipart/form-data">
+                                <input type="file" name="file_upload" id="file_upload">
+                                <button type="button" id="upload_button">Send Image</button>
                             </form>
-                            
+
                             <div class="model-confidence-slider">
                                 <label for="model-confidence">Select Model Confidence</label>
                                 <input type="range" id="model-confidence" name="confidence" min="25" max="100" value="50">
