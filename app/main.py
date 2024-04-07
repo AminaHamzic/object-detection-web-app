@@ -1,5 +1,5 @@
 import boto3
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Depends
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
