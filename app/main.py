@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 app = FastAPI()
 
-# Assuming __file__ is in the 'app' directory, and the 'frontend' directory is at the same level
-root_path = Path(__file__).resolve().parent.parent
-frontend_dir = root_path / 'frontend'
+# Define the path to your frontend directory
+frontend_dir = Path(__file__).resolve().parent.parent / 'frontend'
+
+# Serve static files from the 'frontend' directory
+app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
 
 @app.get("/")
