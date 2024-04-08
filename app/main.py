@@ -23,7 +23,3 @@ async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
 
-@app.post("/upload/")
-async def upload(file: UploadFile | None = None):
-    if not file:
-        raise HTTPException(status_code=400, detail="No file")
