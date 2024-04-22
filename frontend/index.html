@@ -5,12 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Object Detection App</title>
-    
 
-
-    
     <link href="https://fonts.googleapis.com/css?family=K2D:300,400,500,700,800" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="./static/css/bootstrap.css">
+    <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -21,7 +19,7 @@
         <div class="row">
             <div class="col-12 d-flex flex-row align-items-center justify-content-between">
                 <div class="heading-brand">Object Detection App</div>
-                <a href="#" class="btn btn-dark" target="_blank">GitHub</a>
+                <a href="https://github.com/AminaHamzic/Object-Detection-App" class="btn btn-dark" target="_blank">GitHub</a>
             </div>
         </div>
         <div class="row mt-6">
@@ -40,9 +38,12 @@
                                 <p>Drag and drop file here</p>
                                 <p>Limit 200MB per file - JPG, JPEG, PNG</p>
                             </div>
-                            <form method="POST" enctype="multipart/form-data">
+                            <form method="POST" action="http://127.0.0.1:8000/uploadfile/"
+                                class="dropzone" id="my-awesome-dropzone">
+
+                                <!--<label for="file_upload" class="file-upload-label">Upload File</label>
                                 <input type="file" name="file_upload" id="file_upload">
-                                <button type="button" id="upload_button">Send Image</button>
+                                <button type="submit" id="uploadedImage">Send Image</button> -->
                             </form>
 
                             <div class="model-confidence-slider">
@@ -52,8 +53,9 @@
                         </div>
                     </div>
                     <div class="object-detection-area">
-                        <h3>Image here</h3>
-                        <!-- The object detection results will be displayed here -->
+                        <h3>Image will appear here after upload:</h3>
+                        <!-- Uploaded image will be displayed here -->
+                        <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
                     </div>
                 </div>
             </div>
@@ -93,12 +95,21 @@
         </div>
     </div>
 </footer>
-
-<!-- jQuery first, then Popper.js, then Bootstrap JS
-<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.7.3/feather.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
 <script src="/static/js/scripts.js"></script>
+<script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
+
+<script>
+    let myDropzone  = new Dropzone ("#my-awesome-dropzone", {
+        paramName: 'file_upload',
+        init: function() {
+            this.on("success", function(file, response) {
+                // Set the source of the img element to the URL from the server response
+                document.getElementById('display_image').src = response.url;
+                document.getElementById('display_image').style.display = 'block'; // Show the image
+            });
+        }
+});
+
+</script>
 </body>
 </html>

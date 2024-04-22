@@ -72,12 +72,7 @@ ul ul{
 small{
   font-size:80%
 }
-a{
-  color:#000;
-  text-decoration:none;
-  background-color:transparent;
-  -webkit-text-decoration-skip:objects
-}
+
 a:hover{
   color:#666;
   text-decoration:none
@@ -204,13 +199,7 @@ img{
   padding-right:15px;
   padding-left:15px
 }
-.col{
-  -ms-flex-preferred-size:0;
-  flex-basis:0;
-  -ms-flex-positive:1;
-  flex-grow:1;
-  max-width:100%
-}
+
 .col-auto{
   -ms-flex:0 0 auto;
   flex:0 0 auto;
@@ -277,14 +266,7 @@ img{
   flex:0 0 100%;
   max-width:100%
 }
-@media (min-width:768px){
-  .col-md{
-      -ms-flex-preferred-size:0;
-      flex-basis:0;
-      -ms-flex-positive:1;
-      flex-grow:1;
-      max-width:100%
-  }
+
   .col-md-auto{
       -ms-flex:0 0 auto;
       flex:0 0 auto;
@@ -351,15 +333,8 @@ img{
       flex:0 0 100%;
       max-width:100%
   }
-}
-@media (min-width:1200px){
-  .col-xl{
-      -ms-flex-preferred-size:0;
-      flex-basis:0;
-      -ms-flex-positive:1;
-      flex-grow:1;
-      max-width:100%
-  }
+
+
   .col-xl-auto{
       -ms-flex:0 0 auto;
       flex:0 0 auto;
@@ -426,7 +401,7 @@ img{
       flex:0 0 100%;
       max-width:100%
   }
-}
+
 .btn{
   display:inline-block;
   font-weight:700;
@@ -590,14 +565,8 @@ a.bg-dark:focus,a.bg-dark:hover{
   -ms-flex-direction:row!important;
   flex-direction:row!important
 }
-.flex-shrink-0{
-  -ms-flex-negative:0!important;
-  flex-shrink:0!important
-}
-.flex-shrink-1{
-  -ms-flex-negative:1!important;
-  flex-shrink:1!important
-}
+
+
 .justify-content-center{
   -ms-flex-pack:center!important;
   justify-content:center!important
@@ -610,27 +579,13 @@ a.bg-dark:focus,a.bg-dark:hover{
   -ms-flex-align:center!important;
   align-items:center!important
 }
-.align-content-center{
-  -ms-flex-line-pack:center!important;
-  align-content:center!important
-}
-.align-content-between{
-  -ms-flex-line-pack:justify!important;
-  align-content:space-between!important
-}
+
 @media (min-width:768px){
   .flex-md-row{
       -ms-flex-direction:row!important;
       flex-direction:row!important
   }
-  .flex-md-shrink-0{
-      -ms-flex-negative:0!important;
-      flex-shrink:0!important
-  }
-  .flex-md-shrink-1{
-      -ms-flex-negative:1!important;
-      flex-shrink:1!important
-  }
+
   .justify-content-md-center{
       -ms-flex-pack:center!important;
       justify-content:center!important
@@ -643,28 +598,14 @@ a.bg-dark:focus,a.bg-dark:hover{
       -ms-flex-align:center!important;
       align-items:center!important
   }
-  .align-content-md-center{
-      -ms-flex-line-pack:center!important;
-      align-content:center!important
-  }
-  .align-content-md-between{
-      -ms-flex-line-pack:justify!important;
-      align-content:space-between!important
-  }
+
 }
 @media (min-width:1200px){
   .flex-xl-row{
       -ms-flex-direction:row!important;
       flex-direction:row!important
   }
-  .flex-xl-shrink-0{
-      -ms-flex-negative:0!important;
-      flex-shrink:0!important
-  }
-  .flex-xl-shrink-1{
-      -ms-flex-negative:1!important;
-      flex-shrink:1!important
-  }
+
   .justify-content-xl-center{
       -ms-flex-pack:center!important;
       justify-content:center!important
@@ -677,23 +618,9 @@ a.bg-dark:focus,a.bg-dark:hover{
       -ms-flex-align:center!important;
       align-items:center!important
   }
-  .align-content-xl-center{
-      -ms-flex-line-pack:center!important;
-      align-content:center!important
-  }
-  .align-content-xl-between{
-      -ms-flex-line-pack:justify!important;
-      align-content:space-between!important
-  }
+
 }
-@supports ((position:-webkit-sticky) or (position:sticky)){
-  .sticky-top{
-      position:-webkit-sticky;
-      position:sticky;
-      top:0;
-      z-index:1020
-  }
-}
+
 .h-25{
   height:25%!important
 }
@@ -1512,16 +1439,6 @@ footer a{
   text-align: center; 
 }
 
-.btn-upload {
-  width: 100%;
-  margin-top: 10px;
-  background-color: #bb3043;
-  border: none;
-  padding: 10px;
-  border-radius: 5px; 
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
 .model-confidence-slider {
   margin: 20px 0;
 }
@@ -1534,6 +1451,48 @@ footer a{
     flex:1;
   padding: 20px;
   border-radius: 5px;
-  background-color: #495057; 
+  background-color: #495057;
   text-align: center;
 }
+
+#file_upload {
+            display: none;
+        }
+
+        /* Style the label to look like a button */
+        .file-upload-label {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        /* Add hover effect to the button label */
+        .file-upload-label:hover {
+            background-color: #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #uploadedImage {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        /* Add hover effect for the submit button */
+        #uploadedImage:hover {
+            background-color: #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
