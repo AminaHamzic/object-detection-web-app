@@ -54,7 +54,7 @@
                     </div>
                     <div class="object-detection-area">
                         <h3>Image will appear here after upload:</h3>
-                        <!-- Uploaded image will be displayed here -->
+
                         <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
                     </div>
                 </div>
@@ -99,16 +99,18 @@
 <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
 
 <script>
-    let myDropzone  = new Dropzone ("#my-awesome-dropzone", {
-        paramName: 'file_upload',
+    let myDropzone = new Dropzone("#my-awesome-dropzone", {
+        paramName: 'file_upload', // The name that will be used to transfer the file
+        maxFilesize: 200, // MB
+        acceptedFiles: 'image/*',
         init: function() {
             this.on("success", function(file, response) {
-                // Set the source of the img element to the URL from the server response
+                // response.url should contain the URL to the processed image
                 document.getElementById('display_image').src = response.url;
-                document.getElementById('display_image').style.display = 'block'; // Show the image
+                document.getElementById('display_image').style.display = 'block';
             });
         }
-});
+    });
 
 </script>
 </body>

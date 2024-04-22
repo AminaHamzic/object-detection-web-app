@@ -1496,3 +1496,7 @@ footer a{
             background-color: #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+
+        #display_image{
+            padding: 20px 0;
+        }
