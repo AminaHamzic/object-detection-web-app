@@ -31,10 +31,10 @@ app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
-
 @app.get("/")
 def read_root():
     return FileResponse(frontend_dir / 'index.html')
+
 
 @app.post("/uploadfile/")
 async def create_upload_file(file_upload: UploadFile = File(...)):
@@ -50,14 +50,6 @@ async def create_upload_file(file_upload: UploadFile = File(...)):
     return {"url": f"/uploads/processed/{processed_image_path.name}"}
 
 
-def process_and_save_image(image_path):
-    results, processed_img = detect_objects(image_path)
-    processed_image_path = PROCESSED_DIR / f"processed_{Path(image_path).name}"
-    cv2.imwrite(str(processed_image_path), processed_img)
-    return processed_image_path
-
-
-# New route for object detection
 @app.get("/detect/{filename}")
 async def detect_objects_in_image(filename: str):
     image_path = UPLOAD_DIR / filename
@@ -68,6 +60,13 @@ async def detect_objects_in_image(filename: str):
     return {"filename": filename, "detection_results": results}
 
 
+def process_and_save_image(image_path):
+    results, processed_img = detect_objects(image_path)
+    processed_image_path = PROCESSED_DIR / f"processed_{Path(image_path).name}"
+    cv2.imwrite(str(processed_image_path), processed_img)
+    return processed_image_path
+
+
 def detect_objects(image_path):
     weights_path = Path("./yolo model/yolov3.weights").resolve()
     config_path = Path("./yolo model/yolov3.cfg").resolve()
@@ -76,26 +75,28 @@ def detect_objects(image_path):
     if not weights_path.exists() or not config_path.exists() or not classes_file.exists():
         raise FileNotFoundError("YOLO model files are missing, please check the paths.")
 
-    # Load the YOLO model
     net = cv2.dnn.readNet(str(weights_path), str(config_path))
 
-    # Load the classes
     with open(str(classes_file), 'r') as file:
         classes = [line.strip() for line in file.readlines()]
 
-    # Get the output layer names
     layer_names = net.getLayerNames()
     out_layer_indices = net.getUnconnectedOutLayers()
-    output_layers = [layer_names[i[0] - 1] for i in out_layer_indices] if out_layer_indices.ndim > 1 else [
-        layer_names[i - 1] for i in out_layer_indices]
+
+    flat_indices = []
+    for i in out_layer_indices:
+        if isinstance(i, list):
+            flat_indices.append(i[0] - 1)
+        else:
+            flat_indices.append(i - 1)
+
+    output_layers = [layer_names[idx] for idx in flat_indices]
 
     #print("Output layers:", output_layers)
 
-
-    # Load the image
     img = cv2.imread(image_path)
     if img is None:
-        raise FileNotFoundError("Image file is missing, please check the path.")
+        raise FileNotFoundError("Image file is missing, check the path.")
 
     height, width, channels = img.shape
 
@@ -112,7 +113,7 @@ def detect_objects(image_path):
             scores = detection[5:]
             class_id = np.argmax(scores)
             confidence = scores[class_id]
-            if confidence > 0.5:  # Confidence threshold
+            if confidence > 0.5:
                 center_x, center_y = int(detection[0] * width), int(detection[1] * height)
                 w, h = int(detection[2] * width), int(detection[3] * height)
 
