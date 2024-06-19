@@ -105,17 +105,23 @@
 
 <script>
     let myDropzone = new Dropzone("#my-awesome-dropzone", {
-        paramName: 'file_upload', // The name that will be used to transfer the file
-        maxFilesize: 200, // MB
+        paramName: 'file_upload',
+        maxFilesize: 200,
         acceptedFiles: 'image/*',
         init: function() {
             this.on("success", function(file, response) {
-                // response.url should contain the URL to the processed image
-                document.getElementById('display_image').src = response.url;
-                document.getElementById('display_image').style.display = 'block';
-            });
-        }
+                if (response.base64_image) {
+                    document.getElementById('display_image').src = 'data:image/png;base64,' + response.base64_image;
+                    document.getElementById('display_image').style.display = 'block';
+                } else {
+                    // Handle cases where the image URL or data is not provided
+                    console.error('No image URL or data provided in the response');
+                }
+            })
+         }
     });
+
+
 
 </script>
 </body>

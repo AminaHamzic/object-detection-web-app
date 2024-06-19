@@ -1,19 +1,14 @@
+import base64
+from pathlib import Path
+
 import cv2
 import numpy as np
-from pathlib import Path
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
-UPLOAD_DIR = Path() / 'uploads'
-UPLOAD_DIR.mkdir(exist_ok=True)
-PROCESSED_DIR = UPLOAD_DIR / "processed"
-PROCESSED_DIR.mkdir(exist_ok=True)
-
-BASE_DIR = Path(__file__).resolve().parent
 
 
 app = FastAPI()
@@ -40,68 +35,66 @@ def read_root():
 async def create_upload_file(file_upload: UploadFile = File(...)):
     data = await file_upload.read()
 
-    #print("Received upload:", file_upload.filename)
+    # Convert image data to numpy array
+    nparr = np.frombuffer(data, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    save_to = UPLOAD_DIR / file_upload.filename
-    with open(save_to, 'wb') as f:
-        f.write(data)
+    if img is None:
+        return JSONResponse(status_code=400, content={"message": "Invalid image file"})
 
-    processed_image_path = process_and_save_image(str(save_to))
-    return {"url": f"/uploads/processed/{processed_image_path.name}"}
+    # Process the image
+    results, processed_img = detect_objects(img)
 
+    # Try to convert processed image to Base64, specify .png as the encoding format
+    try:
+        _, buffer = cv2.imencode('.png', processed_img)
+        base64_str = base64.b64encode(buffer).decode("utf-8")
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": "Failed to encode image", "error": str(e)})
 
-@app.get("/detect/{filename}")
-async def detect_objects_in_image(filename: str):
-    image_path = UPLOAD_DIR / filename
-    if not image_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+    return {"base64_image": base64_str, "detection_results": results, "url": ""}
 
-    results = detect_objects(str(image_path))
-    return {"filename": filename, "detection_results": results}
+#@app.get("/detect/{filename}")
+#async def detect_objects_in_image(filename: str):
+ #   image_path = UPLOAD_DIR / filename
+  #  if not image_path.exists():
+   #     raise HTTPException(status_code=404, detail="File not found")
 
+    #results = detect_objects(str(image_path))
+    #return {"filename": filename, "detection_results": results}
 
-def process_and_save_image(image_path):
-    results, processed_img = detect_objects(image_path)
-    processed_image_path = PROCESSED_DIR / f"processed_{Path(image_path).name}"
-    cv2.imwrite(str(processed_image_path), processed_img)
-    return processed_image_path
+def detect_objects(image):
+    weights_path = "./yolo model/yolov3.weights"
+    config_path = "./yolo model/yolov3.cfg"
+    classes_file = "./yolo model/coco.names"
 
-
-def detect_objects(image_path):
-    weights_path = Path("./yolo model/yolov3.weights").resolve()
-    config_path = Path("./yolo model/yolov3.cfg").resolve()
-    classes_file = Path("./yolo model/coco.names").resolve()
-
-    if not weights_path.exists() or not config_path.exists() or not classes_file.exists():
+    # Ensure model files exist
+    if not Path(weights_path).exists() or not Path(config_path).exists() or not Path(classes_file).exists():
         raise FileNotFoundError("YOLO model files are missing, please check the paths.")
 
-    net = cv2.dnn.readNet(str(weights_path), str(config_path))
+    net = cv2.dnn.readNet(weights_path, config_path)
 
-    with open(str(classes_file), 'r') as file:
+    with open(classes_file, 'r') as file:
         classes = [line.strip() for line in file.readlines()]
 
     layer_names = net.getLayerNames()
     out_layer_indices = net.getUnconnectedOutLayers()
 
-    flat_indices = []
-    for i in out_layer_indices:
-        if isinstance(i, list):
-            flat_indices.append(i[0] - 1)
+    flat_indices = [i[0] - 1 if isinstance(i, np.ndarray) else i - 1 for i in out_layer_indices.flatten()]
+    output_layers = [layer_names[i] for i in flat_indices]
+
+    if not isinstance(image, np.ndarray):
+        # Attempt to read the image if a path is provided instead of an image array
+        if isinstance(image, str):
+            image = cv2.imread(image)
+            if image is None:
+                raise FileNotFoundError("Image file could not be loaded, check the path.")
         else:
-            flat_indices.append(i - 1)
+            raise ValueError("Invalid input: image must be a path (str) or an ndarray.")
 
-    output_layers = [layer_names[idx] for idx in flat_indices]
+    height, width, channels = image.shape
 
-    #print("Output layers:", output_layers)
-
-    img = cv2.imread(image_path)
-    if img is None:
-        raise FileNotFoundError("Image file is missing, check the path.")
-
-    height, width, channels = img.shape
-
-    # Construct a blob from the image
-    blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+    blob = cv2.dnn.blobFromImage(image, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
     net.setInput(blob)
     outs = net.forward(output_layers)
 
@@ -114,8 +107,10 @@ def detect_objects(image_path):
             class_id = np.argmax(scores)
             confidence = scores[class_id]
             if confidence > 0.5:
-                center_x, center_y = int(detection[0] * width), int(detection[1] * height)
-                w, h = int(detection[2] * width), int(detection[3] * height)
+                center_x = int(detection[0] * width)
+                center_y = int(detection[1] * height)
+                w = int(detection[2] * width)
+                h = int(detection[3] * height)
 
                 x = int(center_x - w / 2)
                 y = int(center_y - h / 2)
@@ -124,21 +119,16 @@ def detect_objects(image_path):
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+    score_threshold = 0.5
+    nms_threshold = 0.4
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, score_threshold, nms_threshold)
+
     results = []
+    if indexes is not None and len(indexes) > 0:
+        for i in indexes.flatten():
+            x, y, w, h = boxes[i]
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(image, f"{classes[class_ids[i]]} {confidences[i]:.2f}", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            results.append({"label": classes[class_ids[i]], "confidence": confidences[i], "box": [x, y, w, h]})
 
-    for i in indexes.flatten():
-        x, y, w, h = boxes[i]
-        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(
-            img, f"{classes[class_ids[i]]} {confidences[i]:.2f}",
-            (x, y - 5),
-            cv2.FONT_ITALIC,
-            2,
-            (0, 255, 0), 5)
-
-        results.append({"label": classes[class_ids[i]], "confidence": confidences[i], "box": [x, y, w, h]})
-
-    return results, img
-
-
+    return results, image
