@@ -5,15 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Object Detection App</title>
-
     <link href="https://fonts.googleapis.com/css?family=K2D:300,400,500,700,800" rel="stylesheet">
     <link rel="stylesheet" href="./static/css/bootstrap.css">
     <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 </head>
-
 <body>
 
-<!--Header Section-->
 <section class="bg-gradient pt-5 pb-6">
     <div class="container">
         <div class="row">
@@ -25,58 +22,42 @@
         <div class="row mt-6">
             <div class="col-md-8 mx-auto text-center">
                 <h1>How to use it?</h1>
-                <p class="lead"><strong>1. Uplode your image</strong></p>
-                <p class="lead"><strong>2. Wait for image to be processed</strong></p>
-                <p class="lead"><strong>3. Wait for image to be processed</strong></p>
-
-
-
+                <p class="lead"><strong>1. Upload your image</strong></p>
+                <p class="lead"><strong>2. Wait for the image to be processed</strong></p>
+                <p class="lead"><strong>3. View the results below</strong></p>
             </div>
         </div>
-            <div class="card">
-                <div class="col-md-12 d-flex">
-                    <div class="sidebar">
-                        <div class="sidebar-content">
-                            <h3>Image Configuration</h3>
-                            <p>Choose an image...</p>
-                            <div class="upload-instructions">
-                                <p>Drag and drop file here</p>
-                                <p>Limit 200MB per file - JPG, JPEG, PNG</p>
-                            </div>
-                            <form method="POST" action="http://127.0.0.1:8000/uploadfile/"
-                                class="dropzone" id="my-awesome-dropzone">
-
-                                <!--<label for="file_upload" class="file-upload-label">Upload File</label>
-                                <input type="file" name="file_upload" id="file_upload">
-                                <button type="submit" id="uploadedImage">Send Image</button> -->
-                            </form>
-
-                            <div class="model-confidence-slider">
-                                <label for="model-confidence">Select Model Confidence</label>
-                                <input type="range" id="model-confidence" name="confidence" min="25" max="100" value="50">
-                            </div>
+        <div class="card">
+            <div class="col-md-12 d-flex">
+                <div class="sidebar">
+                    <div class="sidebar-content">
+                        <h3>Image Configuration</h3>
+                        <p>Choose an image...</p>
+                        <div class="upload-instructions">
+                            <p>Drag and drop file here</p>
+                            <p>Limit 200MB per file - JPG, JPEG, PNG</p>
+                        </div>
+                        <form method="POST" action="http://127.0.0.1:8000/uploadfile/" class="dropzone" id="my-awesome-dropzone"></form>
+                        <div class="model-confidence-slider">
+                            <label for="model-confidence">Select Model Confidence</label>
+                            <input type="range" id="model-confidence" name="confidence" min="0" max="100" value="">
                         </div>
                     </div>
-                    <div class="object-detection-area">
-                        <h3>Image will appear here after upload:</h3>
-
-                        <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
-                    </div>
+                </div>
+                <div class="object-detection-area">
+                    <h3>Image will appear here after upload:</h3>
+                    <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
                 </div>
             </div>
-    
-        
+        </div>
     </div>
 </section>
-
-
-
 
 <section class="pb-6 mt-5">
     <div class="container">
         <div class="row">
             <div class="col-md-8 mx-auto">
-                <h2 class="text-center  text-dark">Technologies used in this project</h2>
+                <h2 class="text-center text-dark">Technologies used in this project</h2>
                 <div class="mt-4 d-flex flex-row justify-content-md-between">
                     <img src="./static/icons/html.png" style="width: 100px; height: 100px;" alt="HTML"/>
                     <img src="./static/icons/css.png" style="width: 100px; height: 100px;" alt="CSS"/>
@@ -89,10 +70,8 @@
     </div>
 </section>
 
-<!--footer-->
 <footer class="py-5 bg-light">
     <div class="container">
-
         <div class="row my-2">
             <div class="col-md-4 mx-auto text-muted text-center small-xl">
                 &copy; 2024 Object Detection App
@@ -102,27 +81,33 @@
 </footer>
 <script src="/static/js/scripts.js"></script>
 <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
-
 <script>
     let myDropzone = new Dropzone("#my-awesome-dropzone", {
         paramName: 'file_upload',
         maxFilesize: 200,
         acceptedFiles: 'image/*',
         init: function() {
+            this.on("sending", function(file, xhr, formData) {
+                let confidence = document.getElementById('model-confidence').value;
+                confidence = confidence / 100;
+                console.log("Normalized confidence level:", confidence);
+                formData.append("confidence", confidence);
+});
+
             this.on("success", function(file, response) {
                 if (response.base64_image) {
                     document.getElementById('display_image').src = 'data:image/png;base64,' + response.base64_image;
                     document.getElementById('display_image').style.display = 'block';
                 } else {
-                    // Handle cases where the image URL or data is not provided
                     console.error('No image URL or data provided in the response');
                 }
-            })
-         }
+            });
+            this.on("error", function(file, response) {
+                console.error('Error during file upload: ' + response);
+            });
+        }
     });
-
-
-
 </script>
+
 </body>
 </html>
