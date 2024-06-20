@@ -1,36 +1,45 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+import os
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
 from pathlib import Path
 import cv2
 import numpy as np
 import base64
 import logging
+import shutil
+import tempfile
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust as necessary for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global variable to hold the loaded model
+# Global model variables - holding model
 net = None
+classes = None
 
 @app.on_event("startup")
 async def load_model():
-    global net
-    weights_path = "./yolo model/yolov3.weights"
-    config_path = "./yolo model/yolov3.cfg"
-    classes_file = "./yolo model/coco.names"
-    net = cv2.dnn.readNet(weights_path, config_path)
-    if not Path(weights_path).exists() or not Path(config_path).exists() or not Path(classes_file).exists():
+    global net, classes
+    model_path = Path("./yolo model")
+    weights_path = model_path / "yolov3.weights"
+    config_path = model_path / "yolov3.cfg"
+    classes_file = model_path / "coco.names"
+
+    if not weights_path.exists() or not config_path.exists() or not classes_file.exists():
         raise FileNotFoundError("Model files are missing.")
+
+    net = cv2.dnn.readNet(str(weights_path), str(config_path))
+    with open(classes_file, 'r') as f:
+        classes = f.read().strip().split('\n')
 
 frontend_dir = Path(__file__).resolve().parent.parent / 'frontend'
 app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
@@ -39,33 +48,50 @@ app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 def read_root():
     return FileResponse(frontend_dir / 'index.html')
 
-@app.post("/uploadfile/")
-async def create_upload_file(file_upload: UploadFile = File(...), confidence: float = Form()):
-    logging.info(f"Confidence level: {confidence}")
+logging.basicConfig(level=logging.DEBUG)
+
+@app.post("/stream_video/")
+async def stream_video(file: UploadFile = File(...), confidence: float = Query(0.5)):
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-        data = await file_upload.read()
-        nparr = np.frombuffer(data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        with open(temp_file.name, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        video_id = temp_file.name.split(os.sep)[-1]
+        return {"video_id": video_id}
+    finally:
+        temp_file.close()
 
-        if img is None:
-            raise HTTPException(status_code=400, detail="Invalid image file")
+@app.post("/uploadfile/")
+async def create_upload_file(file_upload: UploadFile = File(...), confidence: float = Form(default=0.5)):
+    file_type = file_upload.content_type
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    try:
+        with open(temp_file.name, "wb") as f:
+            shutil.copyfileobj(file_upload.file, f)
 
-        results, processed_img = detect_objects(img, confidence)
-        _, buffer = cv2.imencode('.png', processed_img)
-        base64_str = base64.b64encode(buffer).decode("utf-8")
-        return {"base64_image": base64_str, "detection_results": results}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"message": "An unexpected error occurred", "error": str(e)})
+        if 'image' in file_type:
+            img = cv2.imread(temp_file.name)
+            results, processed_img = detect_objects(img, confidence)
+            _, buffer = cv2.imencode('.png', processed_img)
+            base64_img = base64.b64encode(buffer).decode("utf-8")
+            return {"base64_image": base64_img, "detection_results": results}
+        elif 'video' in file_type:
+            video_id = temp_file.name.split(os.sep)[-1]
+            return {"video_id": video_id}
+    finally:
+        temp_file.close()
 
+@app.get("/process_video/")
+async def process_video(video_id: str, confidence: float = Query(0.5)):
+    temp_file_path = tempfile.gettempdir() + os.sep + video_id
+    if not os.path.exists(temp_file_path):
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    return StreamingResponse(generate_video_stream(temp_file_path, confidence), media_type="video/mp4")
 
 def detect_objects(image, confidence_threshold):
     global net
     classes_file = "./yolo model/coco.names"
-
-    # Ensure early exit if the threshold is set to zero
-    if confidence_threshold == 0:
-        return [], image
-
     with open(classes_file, 'r') as file:
         classes = [line.strip() for line in file.readlines()]
 
@@ -74,47 +100,51 @@ def detect_objects(image, confidence_threshold):
     outs = net.forward(net.getUnconnectedOutLayersNames())
 
     boxes, confidences, class_ids = [], [], []
-
-    # Process detections
     for out in outs:
         for detection in out:
-            scores = detection[5:]  # get score for each class
-            class_id = np.argmax(scores)  # get the class with the highest score
-            confidence = scores[class_id]  # get the highest score as confidence
-
-            if confidence >= confidence_threshold:
-                print(f"Processing detection with confidence {confidence} and threshold {confidence_threshold}")
+            scores = detection[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+            if confidence > confidence_threshold:
                 center_x = int(detection[0] * image.shape[1])
                 center_y = int(detection[1] * image.shape[0])
                 w = int(detection[2] * image.shape[1])
                 h = int(detection[3] * image.shape[0])
-
                 x = int(center_x - w / 2)
                 y = int(center_y - h / 2)
-
                 boxes.append([x, y, w, h])
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-    # Apply Non-Maximum Suppression
-    indexes = cv2.dnn.NMSBoxes(boxes, confidences, confidence_threshold, 0.5)
-    if indexes is not None and len(indexes) > 0:
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, confidence_threshold, 0.4)
+
+    if len(indexes) > 0:
         indexes = indexes.flatten()
 
     results = []
-    # Prepare final results with bounding box coordinates, labels, and confidence
+    for i in indexes:
+        x, y, w, h = boxes[i]
+        label = classes[class_ids[i]]
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(image, f"{label} {confidences[i]:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        results.append({"label": label, "confidence": confidences[i], "box": [x, y, w, h]})
+
     print(f"Total boxes before NMS: {len(boxes)}")
-    if len(indexes) > 0:
-        print(f"Boxes retained after NMS: {len(indexes.flatten())}")
-        indexes = indexes.flatten()
-        for i in indexes:
-            x, y, w, h = boxes[i]
-            label = classes[class_ids[i]]
-            cv2.rectangle(image, (x, y), (x + w, y + h), [0, 255, 0], 2)
-            cv2.putText(image, f"{label} {confidences[i]:.2f}", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0],
-                        2)
-            results.append({"label": label, "confidence": confidences[i], "box": [x, y, w, h]})
-    else:
-        print("No bounding boxes meet the confidence threshold or NMS criteria.")
+    print(f"Boxes retained after NMS: {len(indexes)}")
 
     return results, image
+
+def generate_video_stream(video_path, confidence_threshold):
+    cap = cv2.VideoCapture(video_path)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        frame = detect_objects(frame, confidence_threshold)[1]
+        _, buffer = cv2.imencode('.jpg', frame)
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
+    cap.release()
+

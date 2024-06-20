@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Object Detection App</title>
@@ -22,8 +21,8 @@
         <div class="row mt-6">
             <div class="col-md-8 mx-auto text-center">
                 <h1>How to use it?</h1>
-                <p class="lead"><strong>1. Upload your image</strong></p>
-                <p class="lead"><strong>2. Wait for the image to be processed</strong></p>
+                <p class="lead"><strong>1. Upload your image or video</strong></p>
+                <p class="lead"><strong>2. Wait for the media to be processed</strong></p>
                 <p class="lead"><strong>3. View the results below</strong></p>
             </div>
         </div>
@@ -31,75 +30,51 @@
             <div class="col-md-12 d-flex">
                 <div class="sidebar">
                     <div class="sidebar-content">
-                        <h3>Image Configuration</h3>
-                        <p>Choose an image...</p>
+                        <h3>Image/Video Configuration</h3>
+                        <p>Choose an image or video...</p>
                         <div class="upload-instructions">
-                            <p>Drag and drop file here</p>
-                            <p>Limit 200MB per file - JPG, JPEG, PNG</p>
+                            <p>Drag and drop file here or click to select</p>
+                            <p>Limit 200MB per file - JPG, JPEG, PNG, MP4</p>
                         </div>
-                        <form method="POST" action="http://127.0.0.1:8000/uploadfile/" class="dropzone" id="my-awesome-dropzone"></form>
+                        <form action="http://127.0.0.1:8000/uploadfile/" class="dropzone" id="my-awesome-dropzone"></form>
                         <div class="model-confidence-slider">
                             <label for="model-confidence">Select Model Confidence</label>
-                            <input type="range" id="model-confidence" name="confidence" min="0" max="100" value="">
+                            <input type="range" id="model-confidence" name="confidence" min="0" max="100" value="50">
                         </div>
                     </div>
                 </div>
                 <div class="object-detection-area">
-                    <h3>Image will appear here after upload:</h3>
-                    <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
+                    <h3>Results will appear here:</h3>
+                    <img id="display_image" src="" alt="Uploaded Media" style="max-width: 100%; display: none;">
+                    <video id="display_video" controls style="max-width: 100%; display: none;"></video>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="pb-6 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-8 mx-auto">
-                <h2 class="text-center text-dark">Technologies used in this project</h2>
-                <div class="mt-4 d-flex flex-row justify-content-md-between">
-                    <img src="./static/icons/html.png" style="width: 100px; height: 100px;" alt="HTML"/>
-                    <img src="./static/icons/css.png" style="width: 100px; height: 100px;" alt="CSS"/>
-                    <img src="./static/icons/js.png" style="width: 100px; height: 100px;" alt="JS"/>
-                    <img src="./static/icons/fastAPI.jpg" style="width: 100px; height: 100px;" alt="FastAPI"/>
-                    <img src="./static/icons/python.png" style="width: 100px; height: 100px;" alt="Python"/>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<footer class="py-5 bg-light">
-    <div class="container">
-        <div class="row my-2">
-            <div class="col-md-4 mx-auto text-muted text-center small-xl">
-                &copy; 2024 Object Detection App
-            </div>
-        </div>
-    </div>
-</footer>
 <script src="/static/js/scripts.js"></script>
 <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
 <script>
     let myDropzone = new Dropzone("#my-awesome-dropzone", {
         paramName: 'file_upload',
         maxFilesize: 200,
-        acceptedFiles: 'image/*',
+        acceptedFiles: 'image/*,video/*',
         init: function() {
             this.on("sending", function(file, xhr, formData) {
-                let confidence = document.getElementById('model-confidence').value;
-                confidence = confidence / 100;
-                console.log("Normalized confidence level:", confidence);
+                let confidence = document.getElementById('model-confidence').value / 100;
                 formData.append("confidence", confidence);
-});
-
+            });
             this.on("success", function(file, response) {
-                if (response.base64_image) {
+                if (file.type.startsWith('image')) {
                     document.getElementById('display_image').src = 'data:image/png;base64,' + response.base64_image;
                     document.getElementById('display_image').style.display = 'block';
-                } else {
-                    console.error('No image URL or data provided in the response');
+                    document.getElementById('display_video').style.display = 'none';
+                } else if (file.type.startsWith('video')) {
+                    let videoId = response.video_id;
+                    document.getElementById('display_video').src = `http://127.0.0.1:8000/process_video/?video_id=${videoId}&confidence=${confidence}`;
+                    document.getElementById('display_video').style.display = 'block';
+                    document.getElementById('display_image').style.display = 'none';
                 }
             });
             this.on("error", function(file, response) {
