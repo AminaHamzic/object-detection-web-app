@@ -36,8 +36,8 @@
                             <p>Drag and drop file here or click to select</p>
                             <p>Limit 200MB per file - JPG, JPEG, PNG, MP4</p>
                         </div>
-                        <form action="http://127.0.0.1:8000/upload_image/" class="dropzone" id="image-dropzone"></form>
-                        <form action="http://127.0.0.1:8000/upload_video/" class="dropzone" id="video-dropzone"></form>
+                        <form id="image-dropzone" class="dropzone"></form>
+                        <form id="video-dropzone" class="dropzone"></form>
                         <div class="model-confidence-slider">
                             <label for="model-confidence">Select Model Confidence</label>
                             <input type="range" id="model-confidence" name="confidence" min="0" max="100" value="50">
@@ -54,10 +54,13 @@
     </div>
 </section>
 
-
+<script src="/static/js/scripts.js"></script>
 <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
 <script>
+    const baseUrl = window.location.origin;
+
     let imageDropzone = new Dropzone("#image-dropzone", {
+        url: `${baseUrl}/upload_image/`,
         paramName: 'file_upload',
         maxFilesize: 200,
         acceptedFiles: 'image/*',
@@ -81,21 +84,22 @@
         }
     });
 
-    let confidence = document.getElementById('model-confidence').value / 100;
-
     let videoDropzone = new Dropzone("#video-dropzone", {
+        url: `${baseUrl}/upload_video/`,
         paramName: 'file_upload',
         maxFilesize: 200,
         acceptedFiles: 'video/*',
         init: function() {
             this.on("sending", function(file, xhr, formData) {
+                let confidence = document.getElementById('model-confidence').value / 100;
                 formData.append("confidence", confidence);
             });
             this.on("success", function(file, response) {
                 if (response.video_id) {
-                     document.getElementById('display_video').src = `http://127.0.0.1:8000/process_video/?video_id=${response.video_id}&confidence=${confidence}`;
-                     document.getElementById('display_video').style.display = 'block';
-
+                    let confidence = document.getElementById('model-confidence').value / 100;
+                    document.getElementById('display_video').src = `${baseUrl}/process_video/?video_id=${response.video_id}&confidence=${confidence}`;
+                    document.getElementById('display_video').style.display = 'block';
+                    document.getElementById('display_image').style.display = 'none';
                 } else {
                     console.error('No video ID provided in the response');
                 }
@@ -105,10 +109,7 @@
             });
         }
     });
-
 </script>
+
 </body>
 </html>
-
-
-
