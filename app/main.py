@@ -11,6 +11,10 @@ import numpy as np
 import logging
 import shutil
 import tempfile
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 '''
@@ -30,9 +34,9 @@ classes = None
 async def load_model():
     global net, classes
     model_path = Path("./yolo model")
-    weights_path = model_path / "yolov3.weights"
-    config_path = model_path / "yolov3.cfg"
-    classes_file = model_path / "coco.names"
+    weights_path = Path(os.getenv('MODEL_WEIGHTS', './yolo model/yolov3.weights'))
+    config_path = Path(os.getenv('MODEL_CONFIG', './yolo model/yolov3.cfg'))
+    classes_file = Path(os.getenv('MODEL_CLASSES', './yolo model/coco.names'))
 
     if not weights_path.exists() or not config_path.exists() or not classes_file.exists():
         raise FileNotFoundError("Model files are missing.")
