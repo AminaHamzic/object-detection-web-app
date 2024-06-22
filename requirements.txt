@@ -4,7 +4,7 @@ botocore~=1.34.76
 starlette~=0.37.2
 boto3~=1.34.76
 python-magic~=0.4.27
-numpy~=1.26.4
+numpy>=1.19.5
 opencv-python
 python-dotenv
 python-multipart
