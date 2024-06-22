@@ -1,14 +1,15 @@
 FROM python:3.8-slim
 
-# Set work directory
+# Install dependencies for OpenCV
+RUN apt-get update && apt-get install -y libglib2.0-0 libsm6 libxext6 libxrender-dev libgl1-mesa-dev
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy application code
+COPY . /app
 WORKDIR /app
 
-# Install dependencies
-RUN pip install numpy
-RUN pip install opencv-python-headless==4.5.2.54
-
-# Copy your application code
-COPY . /app
-
-# Run your application
-CMD ["python", "main.py"]
+# Command to run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
