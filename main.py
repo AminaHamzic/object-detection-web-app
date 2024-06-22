@@ -1,4 +1,4 @@
-'''import base64
+import base64
 import os
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -181,13 +181,7 @@ async def process_video(video_id: str, confidence: float = Query(0.5)):
     return StreamingResponse(generate_video_stream(temp_file_path, net, classes, confidence),
                              media_type="multipart/x-mixed-replace; boundary=frame")
 
-'''
 
-from fastapi import FastAPI
 
-app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
 
