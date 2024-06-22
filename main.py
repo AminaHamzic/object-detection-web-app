@@ -45,8 +45,9 @@ async def load_model():
     with open(classes_file, 'r') as f:
         classes = f.read().strip().split('\n')
 
-frontend_dir = Path(__file__).resolve().parent.parent / 'frontend'
+frontend_dir = Path(__file__).resolve().parent / 'frontend'
 app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+
 
 @app.get("/")
 def read_root():
