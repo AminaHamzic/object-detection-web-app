@@ -1,3 +1,28 @@
-.venv
+# Environment variables and virtual environments
 .env
-.idea
+.venv/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE and editors
+.idea/
+*.sublime-workspace
+*.code-workspace
+
+# Python files
+__pycache__/
+*.pyc
+*.pyo
+
+# Dependency directories
+node_modules/
+
+# Build and dist files
+/dist/
+/build/
+
+# Log files and databases
+*.log
+*.sqlite
