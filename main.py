@@ -1,4 +1,4 @@
-import base64
+'''import base64
 import os
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -17,15 +17,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
-'''
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)'''
-
+)
 # Global model variables - holding model
 net = None
 classes = None
@@ -96,6 +95,7 @@ def detect_objects(image, confidence_threshold):
     outs = net.forward(net.getUnconnectedOutLayersNames())
 
     boxes, confidences, class_ids = [], [], []
+
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -181,4 +181,13 @@ async def process_video(video_id: str, confidence: float = Query(0.5)):
     return StreamingResponse(generate_video_stream(temp_file_path, net, classes, confidence),
                              media_type="multipart/x-mixed-replace; boundary=frame")
 
+'''
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
