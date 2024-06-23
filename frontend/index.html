@@ -12,31 +12,33 @@
 
 <section class="bg-gradient pt-5 pb-6">
     <div class="container">
-        <div class="row">
-            <div class="col-12 d-flex flex-row align-items-center justify-content-between">
-                <div class="heading-brand">Object Detection App</div>
-                <a href="https://github.com/AminaHamzic/Object-Detection-App" class="btn btn-dark" target="_blank">GitHub</a>
-            </div>
+       <div class="row">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div class="heading-brand">Object Detection App</div>
+            <a href="https://github.com/AminaHamzic/Object-Detection-App" class="btn btn-dark" target="_blank">GitHub</a>
         </div>
-        <div class="row mt-6">
-            <div class="col-md-8 mx-auto text-center">
-                <h1>How to use it?</h1>
-                <p class="lead"><strong>1. Upload your image or video</strong></p>
-                <p class="lead"><strong>2. Wait for the media to be processed</strong></p>
-                <p class="lead"><strong>3. View the results below</strong></p>
+    </div>
+        <div class="container">
+            <div class="row mt-5 d-flex justify-content-center">
+                <div class="col-md-8 text-center">
+                    <h1>How to use it?</h1>
+                    <p class="lead"><strong>1. Upload your image or video</strong></p>
+                    <p class="lead"><strong>2. Wait for the media to be processed</strong></p>
+                    <p class="lead"><strong>3. View the results below</strong></p>
+                </div>
             </div>
         </div>
         <div class="card">
-            <div class="col-md-12 d-flex">
+            <div class="col-md-12 d-flex flex-column flex-md-row">
                 <div class="sidebar">
                     <div class="sidebar-content">
-                        <h3>Image/Video Configuration</h3>
-                        <p>Choose an image or video...</p>
+                        <h3>Image/Video Upload</h3>
                         <div class="upload-instructions">
-                            <p>Drag and drop file here or click to select</p>
                             <p>Limit 200MB per file - JPG, JPEG, PNG, MP4</p>
                         </div>
+                        <h4>Upload Image:</h4>
                         <form id="image-dropzone" class="dropzone"></form>
+                        <h4>Upload Video:</h4>
                         <form id="video-dropzone" class="dropzone"></form>
                         <div class="model-confidence-slider">
                             <label for="model-confidence">Select Model Confidence</label>
@@ -47,7 +49,7 @@
                 <div class="object-detection-area">
                     <h3>Results will appear here:</h3>
                     <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
-                    <img id="display_video" style="max-width: 100%; display: none;">
+                    <img id="display_video" controls style="max-width: 100%; display: none;"></img>
                 </div>
             </div>
         </div>

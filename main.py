@@ -52,7 +52,7 @@ app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 def read_root():
     return FileResponse(frontend_dir / 'index.html')
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 @app.post("/upload_image/")
 async def upload_image(file_upload: UploadFile = File(...), confidence: float = Form(default=0.5)):
