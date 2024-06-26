@@ -12,6 +12,7 @@ import logging
 import shutil
 import tempfile
 from dotenv import load_dotenv
+from collections import Counter
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +26,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Global model variables - holding model
 net = None
 classes = None
@@ -65,14 +67,15 @@ async def upload_image(file_upload: UploadFile = File(...), confidence: float = 
         results, processed_img = detect_objects(img, confidence)
         _, buffer = cv2.imencode('.png', processed_img)
         base64_img = base64.b64encode(buffer).decode("utf-8")
-        return {"base64_image": base64_img, "detection_results": results}
+
+        object_counts = Counter([result["label"] for result in results])
+
+        return {"base64_image": base64_img, "detection_results": results, "object_counts": object_counts}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": "An error occurred during image processing",
-                                                      "error": str(e)})
+        return JSONResponse(status_code=500, content={"message": "An error occurred during image processing", "error": str(e)})
     finally:
         temp_file.close()
         os.unlink(temp_file.name)
-
 
 @app.post("/upload_video/")
 async def upload_video(file_upload: UploadFile = File(...)):
@@ -124,7 +127,6 @@ def detect_objects(image, confidence_threshold):
             results.append({"label": label, "confidence": confidences[i], "box": [x, y, w, h]})
 
     return results, image
-
 
 def detect_objects_in_frame(frame, net, classes, confidence_threshold):
     height, width = frame.shape[:2]

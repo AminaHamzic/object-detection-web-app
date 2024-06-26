@@ -6,29 +6,18 @@
     <title>Object Detection App</title>
     <link href="https://fonts.googleapis.com/css?family=K2D:300,400,500,700,800" rel="stylesheet">
     <link rel="stylesheet" href="./static/css/bootstrap.css">
-    <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <section class="bg-gradient pt-5 pb-6">
-    <div class="container">
-       <div class="row">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <div class="heading-brand">Object Detection App</div>
-            <a href="https://github.com/AminaHamzic/Object-Detection-App" class="btn btn-dark" target="_blank">GitHub</a>
-        </div>
-    </div>
-        <div class="container">
-            <div class="row mt-5 d-flex justify-content-center">
-                <div class="col-md-8 text-center">
-                    <h1>How to use it?</h1>
-                    <p class="lead"><strong>1. Upload your image or video</strong></p>
-                    <p class="lead"><strong>2. Wait for the media to be processed</strong></p>
-                    <p class="lead"><strong>3. View the results below</strong></p>
-                </div>
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <div class="heading-brand">Object Detection App</div>
+                <a href="https://github.com/AminaHamzic/Object-Detection-App" class="btn btn-dark" target="_blank">GitHub</a>
             </div>
         </div>
         <div class="card">
-            <div class="col-md-12 d-flex flex-column flex-md-row">
+            <div class="col-md-12 d-flex flex-column flex-md-row justify-content-center">
                 <div class="sidebar">
                     <div class="sidebar-content">
                         <h3>Image/Video Upload</h3>
@@ -36,9 +25,19 @@
                             <p>Limit 200MB per file - JPG, JPEG, PNG, MP4</p>
                         </div>
                         <h4>Upload Image:</h4>
-                        <form id="image-dropzone" class="dropzone"></form>
+                        <form id="image-dropzone" class="dropzone">
+                            <div class="dz-message">
+                                <span>Drop files here or click to upload</span>
+                                <button type="button" class="button">Upload Image</button>
+                            </div>
+                        </form>
                         <h4>Upload Video:</h4>
-                        <form id="video-dropzone" class="dropzone"></form>
+                        <form id="video-dropzone" class="dropzone">
+                            <div class="dz-message">
+                                <span>Drop files here or click to upload</span>
+                                <button type="button" class="button">Upload Video</button>
+                            </div>
+                        </form>
                         <div class="model-confidence-slider">
                             <label for="model-confidence">Select Model Confidence</label>
                             <input type="range" id="model-confidence" name="confidence" min="0" max="100" value="50">
@@ -47,8 +46,10 @@
                 </div>
                 <div class="object-detection-area">
                     <h3>Results will appear here:</h3>
-                    <img id="display_image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
-                    <img id="display_video" controls style="max-width: 100%; display: none;"></img>
+                    <img id="display_image" src="" alt="Uploaded Image" class="img-fluid processed-image" style="display: none;">
+                    <img id="display_video" controls class="img-fluid processed-image" style="display: none;"></img>
+                    <div id="detection_results" class="text-results"></div>
+                    <div id="object_counts" class="counts-container"></div>
                 </div>
             </div>
         </div>
@@ -59,11 +60,14 @@
 <script>
     const baseUrl = window.location.origin;
 
+    Dropzone.autoDiscover = false;
+
     let imageDropzone = new Dropzone("#image-dropzone", {
         url: `${baseUrl}/upload_image/`,
         paramName: 'file_upload',
         maxFilesize: 200,
         acceptedFiles: 'image/*',
+        previewTemplate: '<div></div>',
         init: function() {
             this.on("sending", function(file, xhr, formData) {
                 let confidence = document.getElementById('model-confidence').value / 100;
@@ -74,6 +78,25 @@
                     document.getElementById('display_image').src = 'data:image/png;base64,' + response.base64_image;
                     document.getElementById('display_image').style.display = 'block';
                     document.getElementById('display_video').style.display = 'none';
+
+                    let resultsContainer = document.getElementById('detection_results');
+                    let countsContainer = document.getElementById('object_counts');
+                    resultsContainer.innerHTML = '';
+                    countsContainer.innerHTML = '';
+
+                    resultsContainer.innerHTML = '<h4>Detected Objects:</h4>';
+                    for (const [label, count] of Object.entries(response.object_counts)) {
+                        let resultDiv = document.createElement('div');
+                        resultDiv.innerText = `${label}`;
+                        resultsContainer.appendChild(resultDiv);
+
+                        let countDiv = document.createElement('div');
+                        countDiv.innerText = `${label}: ${count}`;
+                        countsContainer.appendChild(countDiv);
+                    }
+
+                    resultsContainer.style.display = 'block';
+                    countsContainer.style.display = 'flex';
                 } else {
                     console.error('No image data provided in the response');
                 }
@@ -89,6 +112,7 @@
         paramName: 'file_upload',
         maxFilesize: 200,
         acceptedFiles: 'video/*',
+        previewTemplate: '<div></div>',
         init: function() {
             this.on("sending", function(file, xhr, formData) {
                 let confidence = document.getElementById('model-confidence').value / 100;
@@ -108,6 +132,14 @@
                 console.error('Error during file upload: ' + response);
             });
         }
+    });
+
+    document.querySelector("#image-dropzone .button").addEventListener("click", function() {
+        imageDropzone.hiddenFileInput.click();
+    });
+
+    document.querySelector("#video-dropzone .button").addEventListener("click", function() {
+        videoDropzone.hiddenFileInput.click();
     });
 </script>
 </body>
